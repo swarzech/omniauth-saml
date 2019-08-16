@@ -24,8 +24,8 @@ module OmniAuth
       option :attribute_statements, {
         name: ["name"],
         email: ["email", "mail"],
-        first_name: ["first_name", "firstname", "firstName"],
-        last_name: ["last_name", "lastname", "lastName"]
+        first_name: ["first_name", "firstname", "firstName", "givenname"],
+        last_name: ["last_name", "lastname", "lastName", "surname"]
       }
       option :slo_default_relay_state
       option :uid_attribute
@@ -40,6 +40,7 @@ module OmniAuth
       end
 
       def callback_phase
+        Rails.logger.info request.to_json
         raise OmniAuth::Strategies::SAML::ValidationError.new("SAML response missing") unless request.params["SAMLResponse"]
 
         with_settings do |settings|

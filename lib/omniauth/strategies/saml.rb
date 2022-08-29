@@ -48,6 +48,7 @@ module OmniAuth
       end
 
       def callback_phase
+        Rails.logger.info request.to_json
         raise OmniAuth::Strategies::SAML::ValidationError.new("SAML response missing") unless request.params["SAMLResponse"]
 
         # Call a fingerprint validation method if there's one

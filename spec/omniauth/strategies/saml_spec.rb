@@ -6,7 +6,7 @@ RSpec::Matchers.define :fail_with do |message|
   end
 end
 
-def post_xml(xml=:example_response, opts = {})
+def post_xml(xml = :example_response, opts = {})
   post "/auth/saml/callback", opts.merge({'SAMLResponse' => load_xml(xml)})
 end
 
@@ -18,10 +18,10 @@ describe OmniAuth::Strategies::SAML, :type => :strategy do
     {
       :assertion_consumer_service_url     => "http://localhost:9080/auth/saml/callback",
       :single_logout_service_url          => "http://localhost:9080/auth/saml/slo",
-      :idp_sso_target_url                 => "https://idp.sso.example.com/signon/29490",
-      :idp_slo_target_url                 => "https://idp.sso.example.com/signoff/29490",
+      :idp_sso_service_url                => "https://idp.sso.example.com/signon/29490",
+      :idp_slo_service_url                => "https://idp.sso.example.com/signoff/29490",
       :idp_cert_fingerprint               => "C1:59:74:2B:E8:0C:6C:A9:41:0F:6E:83:F6:D1:52:25:45:58:89:FB",
-      :idp_sso_target_url_runtime_params  => {:original_param_key => :mapped_param_key},
+      :idp_sso_service_url_runtime_params => {:original_param_key => :mapped_param_key},
       :name_identifier_format             => "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
       :request_attributes                 => [
         { :name => 'email', :name_format => 'urn:oasis:names:tc:SAML:2.0:attrname-format:basic', :friendly_name => 'Email address' },
@@ -34,10 +34,10 @@ describe OmniAuth::Strategies::SAML, :type => :strategy do
   end
   let(:strategy) { [OmniAuth::Strategies::SAML, saml_options] }
 
-  describe 'GET /auth/saml' do
+  describe 'POST /auth/saml' do
     context 'without idp runtime params present' do
       before do
-        get '/auth/saml'
+        post '/auth/saml'
       end
 
       it 'should get authentication page' do
@@ -51,7 +51,7 @@ describe OmniAuth::Strategies::SAML, :type => :strategy do
 
     context 'with idp runtime params' do
       before do
-        get '/auth/saml', 'original_param_key' => 'original_param_value', 'mapped_param_key' => 'mapped_param_value'
+        post '/auth/saml', 'original_param_key' => 'original_param_value', 'mapped_param_key' => 'mapped_param_value'
       end
 
       it 'should get authentication page' do
@@ -71,7 +71,7 @@ describe OmniAuth::Strategies::SAML, :type => :strategy do
 
       it 'should send the current callback_url as the assertion_consumer_service_url' do
         %w(foo.example.com bar.example.com).each do |host|
-          get "https://#{host}/auth/saml"
+          post "https://#{host}/auth/saml"
 
           expect(last_response).to be_redirect
 
@@ -89,7 +89,7 @@ describe OmniAuth::Strategies::SAML, :type => :strategy do
     end
 
     context 'when authn request signing is requested' do
-      subject { get '/auth/saml' }
+      subject { post '/auth/saml' }
 
       let(:private_key) { OpenSSL::PKey::RSA.new 2048 }
 
@@ -306,7 +306,7 @@ describe OmniAuth::Strategies::SAML, :type => :strategy do
 
     context "when response is a logout response" do
       before :each do
-        saml_options[:issuer] = "https://idp.sso.example.com/metadata/29490"
+        saml_options[:sp_entity_id] = "https://idp.sso.example.com/metadata/29490"
 
         post "/auth/saml/slo", {
           SAMLResponse: load_xml(:example_logout_response),
@@ -323,7 +323,7 @@ describe OmniAuth::Strategies::SAML, :type => :strategy do
       subject { post "/auth/saml/slo", params, "rack.session" => { "saml_uid" => "username@example.com" } }
 
       before :each do
-        saml_options[:issuer] = "https://idp.sso.example.com/metadata/29490"
+        saml_options[:sp_entity_id] = "https://idp.sso.example.com/metadata/29490"
       end
 
       let(:params) do
@@ -392,8 +392,8 @@ describe OmniAuth::Strategies::SAML, :type => :strategy do
         end
       end
 
-      it "should give not implemented without an idp_slo_target_url" do
-        saml_options.delete(:idp_slo_target_url)
+      it "should give not implemented without an idp_slo_service_url" do
+        saml_options.delete(:idp_slo_service_url)
         post "/auth/saml/spslo"
 
         expect(last_response.status).to eq 501
@@ -402,10 +402,10 @@ describe OmniAuth::Strategies::SAML, :type => :strategy do
     end
   end
 
-  describe 'GET /auth/saml/metadata' do
+  describe 'POST /auth/saml/metadata' do
     before do
-      saml_options[:issuer] = 'http://example.com/SAML'
-      get '/auth/saml/metadata'
+      saml_options[:sp_entity_id] = 'http://example.com/SAML'
+      post '/auth/saml/metadata'
     end
 
     it 'should get SP metadata page' do
@@ -424,19 +424,19 @@ describe OmniAuth::Strategies::SAML, :type => :strategy do
   end
 
   context 'when hitting an unknown route in our sub path' do
-    before { get '/auth/saml/unknown' }
+    before { post '/auth/saml/unknown' }
 
     specify { expect(last_response.status).to eql 404 }
   end
 
   context 'when hitting a completely unknown route' do
-    before { get '/unknown' }
+    before { post '/unknown' }
 
     specify { expect(last_response.status).to eql 404 }
   end
 
   context 'when hitting a route that contains a substring match for the strategy name' do
-    before { get '/auth/saml2/metadata' }
+    before { post '/auth/saml2/metadata' }
 
     it 'should not set the strategy' do
       expect(last_request.env['omniauth.strategy']).to be_nil

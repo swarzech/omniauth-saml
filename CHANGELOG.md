@@ -1,3 +1,43 @@
+<a name="v2.1.0"></a>
+### v2.1.0 (2022-03-01)
+
+
+#### Refactor
+
+* Rename usage of deprecated SAML options  ([74ed8df](/../../commit/74ed8df))
+
+#### Chores
+
+* bump ruby-saml to 1.12  ([15c156a](/../../commit/15c156a))
+
+<a name="v2.0.0"></a>
+### v2.0.0 (2021-01-13)
+
+
+#### Chores
+
+* Allow OmniAuth 2.0.0	 ([f7ec7ee](/../../commit/f7ec7ee))
+
+
+<a name="v1.10.3"></a>
+### v1.10.3 (2020-10-06)
+
+
+#### Bug Fixes
+
+* add options to logout_request initialization	 ([c271a37](/../../commit/c271a37))
+
+
+<a name="v1.10.2"></a>
+### v1.10.2 (2018-05-23)
+
+
+#### Features
+
+* **saml**
+  * inherits allows response options from ruby-saml instead of whitelist	 ([a0eedd6](/../../commit/a0eedd6))
+
+
 <a name="v1.10.1"></a>
 ### v1.10.1 (2018-06-07)
 
